@@ -18,8 +18,22 @@
     -   **Volatility** (Standard Deviation)
     -   **Trend Direction** (Linear Regression Slope)
     -   **Custom Logic** (User-defined functions)
--   **Interactive Search**: Real-time debounce filtering of charts.
+-   **Interactive Search & URL Sync**: Filters charts with debouncing and synchronizes state (Search, Sort, Config) with URL query parameters for deep linking.
+-   **Contextual Drill-Down**: Supports clickable charts that can navigate to external dashboards (e.g., `waffle-board`) with context-specific query parameters.
 -   **Responsive Layout**: CSS Grid-based layout that adapts chart width to available screen space.
+
+## 📦 Installation
+You can use `waffle-batch` as a standalone library in your React application.
+
+```bash
+npm install waffle-batch
+# OR
+npm install git+https://github.com/mbuchthal/waffle-batch.git
+```
+
+**Peer Dependencies:**
+- `react` >= 18
+- `react-dom` >= 18
 
 ## 🛠 Usage
 
@@ -28,7 +42,7 @@
 The core of the library is the `Trellis` component.
 
 ```tsx
-import { Trellis } from './components/Trellis';
+import { Trellis } from 'waffle-batch';
 
 // 1. Prepare your data (flat array)
 const salesData = [
@@ -47,14 +61,21 @@ const salesData = [
   minChartWidth={300}
   height={150}
   sharedScale={true} // Enforce same Y-axis across all charts
+  
+  // Optional: Sorting
   sortConfig={{
     type: 'trend', // Sort by growth trend
     direction: 'desc'
   }}
+  
+  // Optional: Drill-Down Interaction
+  onChartClick={(key) => {
+     window.location.href = `/details?id=${key}`;
+  }}
 />
 ```
 
-### sorting
+### Sorting Config
 
 The `sortConfig` prop accepts predefined algorithms or custom functions:
 
@@ -69,28 +90,21 @@ sortConfig={{
 }}
 ```
 
-## 🏗 Architecture
+## 🏗 Development
 
-### Virtualization Strategy
-Rendering 1,000 D3/SVG charts simultaneously will freeze the DOM. `waffle-batch` wraps every chart in an `IntersectionObserver`. 
--   **In View**: The heavy `ChartComponent` is mounted and rendered.
--   **Out of View**: A lightweight DOM node (skeleton) preserves the exact height/width to prevent layout thrashing.
+The project supports a dual-build workflow:
 
-### Faceting Pipeline
-1.  **Group**: `d3-array.group` splits the flat dataset into Map entries.
-2.  **Filter**: Search queries filter keys (debounced).
-3.  **Calculate Metrics**: Statistical aggregations (Sum, Trend) are computed for visible groups.
-4.  **Sort**: Groups are ordered based on metrics.
-5.  **Render**: The sorted list is mapped to grid items.
+1.  **Demo App** (Development):
+    ```bash
+    npm run dev
+    ```
+    Starts the interactive playground with mock data generation.
 
-## 📦 Installation
-
-```bash
-git clone https://github.com/mbuchthal/waffle-batch.git
-cd waffle-batch
-npm install
-npm run dev
-```
+2.  **Library Build** (Distribution):
+    ```bash
+    npm run build:lib
+    ```
+    Compiles `src/index.ts` into a redistributable package (`dist/lib`).
 
 ## ✅ Testing
 
