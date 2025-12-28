@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Trellis } from './components/Trellis';
 import type { MetricType } from './components/utils/analytics';
+import { useUrlState } from './hooks/useUrlState';
 import { LineChart } from '@waffle-charts/components/waffle/LineChart';
 import { BarChart } from '@waffle-charts/components/waffle/BarChart';
 import { Settings, BarChart2, TrendingUp, ArrowDownAZ, ArrowUpAZ } from 'lucide-react';
@@ -22,8 +23,7 @@ type SalesData = {
 
 const generateData = (): SalesData[] => {
   const data: SalesData[] = [];
-  const totalCharts = REGIONS.length * CATEGORIES.length;
-  console.log(`Generating data for ${totalCharts} charts...`);
+  console.log(`Generating data for ${REGIONS.length * CATEGORIES.length} charts...`);
 
   REGIONS.forEach((region, rI) => {
     CATEGORIES.forEach((category, cI) => {
@@ -72,11 +72,12 @@ const Checkbox = ({ checked, onChange, label }: { checked: boolean, onChange: (c
 );
 
 function App() {
-  const [sharedScale, setSharedScale] = useState(true);
-  const [showAxes, setShowAxes] = useState(false);
-  const [chartType, setChartType] = useState<'line' | 'bar'>('line');
-  const [sortType, setSortType] = useState<MetricType | 'max'>('default');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sharedScale, setSharedScale] = useUrlState<boolean>('scale', true);
+  const [showAxes, setShowAxes] = useUrlState<boolean>('axes', false);
+  const [chartType, setChartType] = useUrlState<'line' | 'bar'>('chart', 'line');
+  const [sortType, setSortType] = useUrlState<MetricType | 'max'>('sort', 'default');
+  const [sortDirection, setSortDirection] = useUrlState<'asc' | 'desc'>('dir', 'desc');
+  const [searchQuery, setSearchQuery] = useUrlState<string>('search', '');
 
   const ChartComponent = useMemo(() => {
     return (props: any) => {
@@ -136,12 +137,12 @@ function App() {
           <Checkbox
             label="Enforce Shared Scale"
             checked={sharedScale}
-            onChange={setSharedScale}
+            onChange={(checked) => setSharedScale(checked)}
           />
           <Checkbox
             label="Show Y-Axis"
             checked={showAxes}
-            onChange={setShowAxes}
+            onChange={(checked) => setShowAxes(checked)}
           />
         </div>
 
@@ -178,7 +179,7 @@ function App() {
             <option value="trend">Trend Direction</option>
           </select>
           <button
-            onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+            onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
             className="p-1.5 bg-white border border-canvas-border rounded-md hover:bg-gray-50 text-canvas-fg/70"
             title={sortDirection === 'asc' ? "Ascending" : "Descending"}
           >
@@ -204,6 +205,8 @@ function App() {
             height={160}
             minChartWidth={280}
             searchable={true}
+            query={searchQuery}
+            onSearchChange={setSearchQuery}
             sortConfig={{
               type: sortType === 'max'
                 ? (subset) => Math.max(...subset.map(d => d.revenue))

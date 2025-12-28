@@ -44,6 +44,10 @@ export type TrellisProps<T> = {
   height?: number;
   SkeletonComponent?: React.ComponentType<{ height: number }>;
   searchable?: boolean;
+  /** Controlled search query. If provided, Trellis filters based on this. */
+  query?: string;
+  /** Callback when search input changes. Required if query is provided. */
+  onSearchChange?: (query: string) => void;
   sortConfig?: SortConfig<T>;
 };
 
@@ -113,10 +117,26 @@ export function Trellis<T>({
   height = 200,
   SkeletonComponent,
   searchable,
+  query,
+  onSearchChange,
   sortConfig = { type: 'default', direction: 'asc' }, // Default sort
 }: TrellisProps<T>) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const debouncedQuery = useDebounce(searchQuery, 300);
+  // Use internal state if not controlled, otherwise use prop
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+
+  const isControlled = query !== undefined;
+  const activeQuery = isControlled ? query : internalSearchQuery;
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (isControlled && onSearchChange) {
+      onSearchChange(val);
+    } else {
+      setInternalSearchQuery(val);
+    }
+  };
+
+  const debouncedQuery = useDebounce(activeQuery, 300);
 
   // 1. Split: Group data by facet key
   const facets = useMemo(() => {
@@ -199,8 +219,8 @@ export function Trellis<T>({
           <input
             type="text"
             placeholder="Search charts..."
-            value={searchQuery} // Bind to immediate state
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={activeQuery} // Bind to immediate state
+            onChange={handleSearchChange}
             className="w-full pl-9 pr-4 py-2 text-sm border border-canvas-border rounded-md bg-canvas-bg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-canvas-fg/40 font-mono">
