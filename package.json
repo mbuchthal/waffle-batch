@@ -1,6 +1,11 @@
 {
   "name": "waffle-batch",
   "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/surprisewaffles-io/waffle-batch.git"
+  },
+  "homepage": "https://surprisewaffles-io.github.io/waffle-batch",
   "type": "module",
   "main": "./dist/lib/waffle-batch.cjs",
   "module": "./dist/lib/waffle-batch.js",

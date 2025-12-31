@@ -28,7 +28,7 @@ You can use `waffle-batch` as a standalone library in your React application.
 ```bash
 npm install waffle-batch
 # OR
-npm install git+https://github.com/mbuchthal/waffle-batch.git
+npm install git+https://github.com/surprisewaffles-io/waffle-batch.git
 ```
 
 **Peer Dependencies:**
